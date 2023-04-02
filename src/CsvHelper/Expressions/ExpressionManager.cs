@@ -246,19 +246,22 @@ namespace CsvHelper.Expressions
 				index = memberMap.Data.Index;
 			}
 
+			ParameterExpression rowParameter = Expression.Parameter(typeof(IReaderRow));
+
 			// Get the field using the field index.
 			var method = typeof(IReaderRow).GetProperty("Item", typeof(string), new[] { typeof(int) }).GetGetMethod();
-			Expression fieldExpression = Expression.Call(Expression.Constant(reader), method, Expression.Constant(index, typeof(int)));
+			Expression fieldExpression = Expression.Call(rowParameter, method, Expression.Constant(index, typeof(int)));
 
 			// Validate the field.
 			if (memberMap.Data.ValidateExpression != null)
 			{
 				var constructor = typeof(ValidateArgs).GetConstructor(new Type[] { typeof(string), typeof(IReaderRow) });
-				var args = Expression.New(constructor, fieldExpression, Expression.Constant(reader));
+				var args = Expression.New(constructor, fieldExpression, rowParameter);
 				var validateExpression = Expression.IsFalse(Expression.Invoke(memberMap.Data.ValidateExpression, args));
 				var validationExceptionConstructor = typeof(FieldValidationException).GetConstructor(new Type[] { typeof(CsvContext), typeof(string), typeof(string) });
 				var messageExpression = Expression.Invoke(memberMap.Data.ValidateMessageExpression, args);
-				var newValidationExceptionExpression = Expression.New(validationExceptionConstructor, Expression.Constant(reader.Context), fieldExpression, messageExpression);
+				var contextExpression = Expression.Property(rowParameter, typeof(IReaderRow).GetProperty(nameof(IReaderRow.Context)));
+				var newValidationExceptionExpression = Expression.New(validationExceptionConstructor, contextExpression, fieldExpression, messageExpression);
 				var throwExpression = Expression.Throw(newValidationExceptionExpression);
 				fieldExpression = Expression.Block(
 					// If the validate method returns false, throw an exception.

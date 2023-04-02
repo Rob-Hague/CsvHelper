@@ -5,45 +5,66 @@
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using System;
-using System.Linq.Expressions;
 
 namespace CsvHelper.Expressions
 {
 	/// <summary>
 	/// Creates primitive records.
 	/// </summary>
-	public class PrimitiveRecordCreator : RecordCreator
+	public class PrimitiveRecordCreatorCreator : IRecordCreatorFactory
 	{
-		/// <summary>
-		/// Initializes a new instance using the given reader.
-		/// </summary>
-		/// <param name="reader">The reader.</param>
-		public PrimitiveRecordCreator(CsvReader reader) : base(reader) { }
+		private readonly CsvReader _reader;
 
-		/// <summary>
-		/// Creates a <see cref="Delegate"/> of type <see cref="Func{T}"/>
-		/// that will create a record of the given type using the current
-		/// reader row.
-		/// </summary>
-		/// <param name="recordType">The record type.</param>
-		protected override Delegate CreateCreateRecordDelegate(Type recordType)
+		public PrimitiveRecordCreatorCreator(CsvReader reader)
 		{
-			var method = typeof(IReaderRow).GetProperty("Item", typeof(string), new[] { typeof(int) }).GetGetMethod();
-			Expression fieldExpression = Expression.Call(Expression.Constant(Reader), method, Expression.Constant(0, typeof(int)));
+			_reader = reader;
+		}
 
+		public bool CanCreate(Type recordType) => recordType.IsPrimitive;
+
+		public IRecordCreator<T> GetRecordCreator<T>()
+		{
 			var memberMapData = new MemberMapData(null)
 			{
 				Index = 0,
-				TypeConverter = Reader.Context.TypeConverterCache.GetConverter(recordType)
+				TypeConverter = _reader.Context.TypeConverterCache.GetConverter(typeof(T)),
+				TypeConverterOptions = TypeConverterOptions.Merge(new TypeConverterOptions { CultureInfo = _reader.Configuration.CultureInfo }, _reader.Context.TypeConverterOptionsCache.GetOptions(typeof(T)))
 			};
-			memberMapData.TypeConverterOptions = TypeConverterOptions.Merge(new TypeConverterOptions { CultureInfo = Reader.Configuration.CultureInfo }, Reader.Context.TypeConverterOptionsCache.GetOptions(recordType));
 
-			fieldExpression = Expression.Call(Expression.Constant(memberMapData.TypeConverter), "ConvertFromString", null, fieldExpression, Expression.Constant(Reader), Expression.Constant(memberMapData));
-			fieldExpression = Expression.Convert(fieldExpression, recordType);
+			return new PrimitiveRecordCreator<T>(memberMapData);
+		}
 
-			var funcType = typeof(Func<>).MakeGenericType(recordType);
+		public IRecordCreator GetRecordCreator(Type recordType)
+		{
+			var memberMapData = new MemberMapData(null)
+			{
+				Index = 0,
+				TypeConverter = _reader.Context.TypeConverterCache.GetConverter(recordType),
+				TypeConverterOptions = TypeConverterOptions.Merge(new TypeConverterOptions { CultureInfo = _reader.Configuration.CultureInfo }, _reader.Context.TypeConverterOptionsCache.GetOptions(recordType))
+			};
 
-			return Expression.Lambda(funcType, fieldExpression).Compile();
+			return new PrimitiveRecordCreator(memberMapData);
+		}
+
+		private class PrimitiveRecordCreator : IRecordCreator
+		{
+			private readonly MemberMapData _memberMapData;
+
+			public PrimitiveRecordCreator(MemberMapData memberMapData)
+			{
+				_memberMapData = memberMapData;
+			}
+
+			public object CreateRecord(IReaderRow row) => _memberMapData.TypeConverter.ConvertFromString(row[0], row, _memberMapData);
+		}
+
+		private sealed class PrimitiveRecordCreator<T> : PrimitiveRecordCreator, IRecordCreator<T>
+		{
+			public PrimitiveRecordCreator(MemberMapData memberMapData) : base(memberMapData)
+			{ }
+
+			T IRecordCreator<T>.CreateRecord(IReaderRow row) => (T)CreateRecord(row);
 		}
 	}
+
 }
