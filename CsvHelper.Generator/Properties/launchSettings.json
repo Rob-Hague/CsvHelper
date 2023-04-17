@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Profile 1": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\CsvHelper.Generator.Sample\\CsvHelper.Generator.Sample.csproj"
+    }
+  }
+}

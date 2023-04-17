@@ -147,7 +147,7 @@ namespace CsvHelper.Expressions
 
 			if (recordType.GetTypeInfo().IsPrimitive)
 			{
-				return primitiveRecordCreator;
+				//return primitiveRecordCreator;
 			}
 
 			return objectRecordCreator;
