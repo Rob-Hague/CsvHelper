@@ -20,7 +20,9 @@ namespace CsvHelper.TypeConversion
 		/// <inheritdoc />
 		public bool Create(Type type, TypeConverterCache cache, out ITypeConverter typeConverter)
 		{
-			typeConverter = new NullableConverter(type, cache);
+			Type converterType = typeof(NullableConverter<>).MakeGenericType(Nullable.GetUnderlyingType(type));
+
+			typeConverter = (ITypeConverter)Activator.CreateInstance(converterType, cache);
 
 			return true;
 		}

@@ -16,25 +16,8 @@ namespace CsvHelper.TypeConversion
     /// <summary>
     /// Converts a <see cref="BigInteger"/> to and from a <see cref="string"/>.
     /// </summary>
-    public class BigIntegerConverter : DefaultTypeConverter
+    public class BigIntegerConverter : DefaultTypeConverter, ISpanTypeConverter<BigInteger>
     {
-        /// <summary>
-        /// Converts the object to a string.
-        /// </summary>
-        /// <param name="value">The object to convert to a string.</param>
-        /// <param name="row">The <see cref="IWriterRow"/> for the current record.</param>
-        /// <param name="memberMapData">The <see cref="MemberMapData"/> for the member being written.</param>
-        /// <returns>The string representation of the object.</returns>
-        public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
-        {
-            if (value is BigInteger bi && memberMapData.TypeConverterOptions.Formats?.FirstOrDefault() == null)
-            {
-                return bi.ToString("R", memberMapData.TypeConverterOptions.CultureInfo);
-            }
-
-            return base.ConvertToString(value, row, memberMapData);
-        }
-
         /// <summary>
         /// Converts the string to an object.
         /// </summary>
@@ -44,14 +27,25 @@ namespace CsvHelper.TypeConversion
         /// <returns>The object created from the string.</returns>
         public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
         {
-            var numberStyle = memberMapData.TypeConverterOptions.NumberStyles ?? NumberStyles.Integer;
-
-            if (BigInteger.TryParse(text, numberStyle, memberMapData.TypeConverterOptions.CultureInfo, out var bi))
-            {
-                return bi;
-            }
-
-            return base.ConvertFromString(text, row, memberMapData);
+            return ConvertFromSpan(text, row, memberMapData);
         }
-    }
+
+		public BigInteger ConvertFromSpan(ReadOnlySpan<char> text, IReaderRow row, MemberMapData memberMapData)
+		{
+			var numberStyle = memberMapData.TypeConverterOptions.NumberStyles ?? NumberStyles.Integer;
+
+			if (BigInteger.TryParse(text, numberStyle, memberMapData.TypeConverterOptions.CultureInfo, out var bi))
+			{
+				return bi;
+			}
+
+			return (BigInteger)((ISpanTypeConverter)this).ConvertFromSpan(text, row, memberMapData);
+		}
+
+		public bool TryFormat(BigInteger value, Span<char> destination, out int charsWritten, IWriterRow row, MemberMapData memberMapData)
+		{
+			var format = memberMapData.TypeConverterOptions.Formats?.FirstOrDefault();
+			return value.TryFormat(destination, out charsWritten, format, memberMapData.TypeConverterOptions.CultureInfo);
+		}
+	}
 }

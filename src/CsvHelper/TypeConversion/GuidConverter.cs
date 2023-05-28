@@ -3,6 +3,8 @@
 // See LICENSE.txt for details or visit http://www.opensource.org/licenses/ms-pl.html for MS-PL and http://opensource.org/licenses/Apache-2.0 for Apache 2.0.
 // https://github.com/JoshClose/CsvHelper
 using System;
+using System.Globalization;
+using System.Linq;
 using CsvHelper.Configuration;
 
 namespace CsvHelper.TypeConversion
@@ -10,7 +12,7 @@ namespace CsvHelper.TypeConversion
 	/// <summary>
 	/// Converts a <see cref="Guid"/> to and from a <see cref="string"/>.
 	/// </summary>
-	public class GuidConverter : DefaultTypeConverter
+	public class GuidConverter : DefaultTypeConverter, ISpanTypeConverter<Guid>
 	{
 		/// <summary>
 		/// Converts the string to an object.
@@ -21,12 +23,23 @@ namespace CsvHelper.TypeConversion
 		/// <returns>The object created from the string.</returns>
 		public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 		{
-			if (text == null)
+			return ConvertFromSpan(text, row, memberMapData);
+		}
+
+		public virtual Guid ConvertFromSpan(ReadOnlySpan<char> text, IReaderRow row, MemberMapData memberMapData)
+		{
+			if (Guid.TryParse(text, out Guid guid))
 			{
-				return base.ConvertFromString(text, row, memberMapData);
+				return guid;
 			}
 
-			return new Guid(text);
+			return (Guid)((ISpanTypeConverter)this).ConvertFromSpan(text, row, memberMapData);
+		}
+
+		public virtual bool TryFormat(Guid value, Span<char> destination, out int charsWritten, IWriterRow row, MemberMapData memberMapData)
+		{
+			var format = memberMapData.TypeConverterOptions.Formats?.FirstOrDefault();
+			return value.TryFormat(destination, out charsWritten, format);
 		}
 	}
 }

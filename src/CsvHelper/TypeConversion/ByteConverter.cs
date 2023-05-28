@@ -2,7 +2,9 @@
 // This file is a part of CsvHelper and is dual licensed under MS-PL and Apache 2.0.
 // See LICENSE.txt for details or visit http://www.opensource.org/licenses/ms-pl.html for MS-PL and http://opensource.org/licenses/Apache-2.0 for Apache 2.0.
 // https://github.com/JoshClose/CsvHelper
+using System;
 using System.Globalization;
+using System.Linq;
 using CsvHelper.Configuration;
 
 namespace CsvHelper.TypeConversion
@@ -10,7 +12,7 @@ namespace CsvHelper.TypeConversion
 	/// <summary>
 	/// Converts a <see cref="byte"/> to and from a <see cref="string"/>.
 	/// </summary>
-	public class ByteConverter : DefaultTypeConverter
+	public class ByteConverter : DefaultTypeConverter, ISpanTypeConverter<byte>
 	{
 		/// <summary>
 		/// Converts the string to an object.
@@ -21,6 +23,11 @@ namespace CsvHelper.TypeConversion
 		/// <returns>The object created from the string.</returns>
 		public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 		{
+			return ConvertFromSpan(text, row, memberMapData);
+		}
+
+		public virtual byte ConvertFromSpan(ReadOnlySpan<char> text, IReaderRow row, MemberMapData memberMapData)
+		{
 			var numberStyle = memberMapData.TypeConverterOptions.NumberStyles ?? NumberStyles.Integer;
 
 			if (byte.TryParse(text, numberStyle, memberMapData.TypeConverterOptions.CultureInfo, out var b))
@@ -28,7 +35,13 @@ namespace CsvHelper.TypeConversion
 				return b;
 			}
 
-			return base.ConvertFromString(text, row, memberMapData);
+			return (byte)((ISpanTypeConverter)this).ConvertFromSpan(text, row, memberMapData);
+		}
+
+		public virtual bool TryFormat(byte value, Span<char> destination, out int charsWritten, IWriterRow row, MemberMapData memberMapData)
+		{
+			var format = memberMapData.TypeConverterOptions.Formats?.FirstOrDefault();
+			return value.TryFormat(destination, out charsWritten, format, memberMapData.TypeConverterOptions.CultureInfo);
 		}
 	}
 }

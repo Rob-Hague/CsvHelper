@@ -1,8 +1,10 @@
-﻿// Copyright 2009-2022 Josh Close
+﻿#nullable enable
+// Copyright 2009-2022 Josh Close
 // This file is a part of CsvHelper and is dual licensed under MS-PL and Apache 2.0.
 // See LICENSE.txt for details or visit http://www.opensource.org/licenses/ms-pl.html for MS-PL and http://opensource.org/licenses/Apache-2.0 for Apache 2.0.
 // https://github.com/JoshClose/CsvHelper
 using CsvHelper.Configuration;
+using System;
 
 namespace CsvHelper.TypeConversion
 {
@@ -28,5 +30,33 @@ namespace CsvHelper.TypeConversion
 		/// <param name="memberMapData">The <see cref="MemberMapData"/> for the member being written.</param>
 		/// <returns>The string representation of the object.</returns>
 		string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData);
+	}
+
+	public interface ISpanTypeConverter
+	{
+		/// <summary>
+		/// Converts the span to an object.
+		/// </summary>
+		/// <param name="text">The span to convert to an object.</param>
+		/// <param name="row">The <see cref="IReaderRow"/> for the current record.</param>
+		/// <param name="memberMapData">The <see cref="MemberMapData"/> for the member being created.</param>
+		/// <returns>The object created from the string.</returns>
+		object? ConvertFromSpan(ReadOnlySpan<char> text, IReaderRow row, MemberMapData memberMapData);
+
+		bool TryFormat(object? value, Span<char> destination, out int charsWritten, IWriterRow row, MemberMapData memberMapData);
+	}
+
+	public interface ISpanTypeConverter<T> : ISpanTypeConverter
+	{
+		/// <summary>
+		/// Converts the span to an object.
+		/// </summary>
+		/// <param name="text">The span to convert to an object.</param>
+		/// <param name="row">The <see cref="IReaderRow"/> for the current record.</param>
+		/// <param name="memberMapData">The <see cref="MemberMapData"/> for the member being created.</param>
+		/// <returns>The object created from the string.</returns>
+		T? ConvertFromSpan(ReadOnlySpan<char> text, IReaderRow row, MemberMapData memberMapData);
+
+		bool TryFormat(T value, Span<char> destination, out int charsWritten, IWriterRow row, MemberMapData memberMapData);
 	}
 }

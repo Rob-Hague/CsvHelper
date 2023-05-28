@@ -13,10 +13,13 @@ using Int32Converter = CsvHelper.TypeConversion.Int32Converter;
 using System.Dynamic;
 using Xunit;
 using System.Threading;
+using CsvHelper.Configuration.Attributes;
+using System.Data;
+using System.Linq;
 
 namespace CsvHelper.Tests
 {
-	
+
 	public class CsvWriterTests
 	{
 		public CsvWriterTests()
@@ -205,6 +208,36 @@ namespace CsvHelper.Tests
 			expected += "first column 2,2,string column 2,test\r\n";
 
 			Assert.Equal(expected, csvFile);
+		}
+
+		record MyType([Name("id")] int Id);
+
+		// type, instance, expected string
+		public static IEnumerable<object[]> TestCases()
+		{
+			yield return new object[] { new MyType(1), "id\r\n1", (object x, object y) => ((MyType)x).Id == ((MyType)y).Id };
+		}
+
+		[Theory]
+		[MemberData(nameof(TestCases))]
+		public void Writing(object @object, string expectedString, Func<object, object, bool> equal)
+		{
+			using StringWriter sw = new();
+			using CsvWriter csvWriter = new(sw, CultureInfo.InvariantCulture);
+
+			csvWriter.WriteRecords(new object[] { @object });
+
+			Assert.Equal(expectedString, sw.ToString());
+		}
+
+		[Theory]
+		[MemberData(nameof(TestCases))]
+		public void Reading(object @object, string expectedString, Func<object, object, bool> equal)
+		{
+			using StringReader sr = new(expectedString);
+			using CsvReader csvReader = new(sr, CultureInfo.InvariantCulture);
+
+			Assert.True(equal(@object, csvReader.GetRecords(@object.GetType()).ToList()[0]));
 		}
 
 		[Fact]
