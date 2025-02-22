@@ -54,7 +54,8 @@
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-		<PackageReference Include="System.Memory" Version="4.5.0" />
+		<PackageReference Include="System.Memory" Version="4.5.5" />
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
 	</ItemGroup>
 
 	<!-- .NET 4.7 -->
@@ -62,7 +63,7 @@
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-		<PackageReference Include="System.Memory" Version="4.5.0" />
+		<PackageReference Include="System.Memory" Version="4.5.5" />
 	</ItemGroup>
 
 	<!-- .NET 4.8 -->
@@ -70,7 +71,7 @@
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-		<PackageReference Include="System.Memory" Version="4.5.0" />
+		<PackageReference Include="System.Memory" Version="4.5.5" />
 	</ItemGroup>
 
 	<!-- .NET Standard 2.0 -->
@@ -78,7 +79,7 @@
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-		<PackageReference Include="System.Memory" Version="4.5.0" />
+		<PackageReference Include="System.Memory" Version="4.5.5" />
 	</ItemGroup>
 
 	<!-- .NET Standard 2.1 -->
