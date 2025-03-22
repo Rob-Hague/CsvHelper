@@ -2,12 +2,9 @@
 // This file is a part of CsvHelper and is dual licensed under MS-PL and Apache 2.0.
 // See LICENSE.txt for details or visit http://www.opensource.org/licenses/ms-pl.html for MS-PL and http://opensource.org/licenses/Apache-2.0 for Apache 2.0.
 // https://github.com/JoshClose/CsvHelper
-using System;
 using System.Threading.Tasks;
 using Statiq.App;
-using Statiq.Common;
-using Statiq.Markdown;
-using Statiq.Web;
+using Statiq.Docs;
 
 namespace CsvHelper.Docs
 {
@@ -15,7 +12,8 @@ namespace CsvHelper.Docs
 	{
 		static async Task<int> Main(string[] args) => await Bootstrapper
 			.Factory
-			.CreateWeb(args)
+			.CreateDocs(args)
+			.AddSourceFiles(@"../../CsvHelper/**/{!.git,!bin,!obj,}/**/*.cs")
 			.RunAsync();
 	}
 }
